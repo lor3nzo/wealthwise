@@ -62,8 +62,12 @@ button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
 .hero-num{grid-column:span 7;display:flex;flex-direction:column;justify-content:flex-end;min-width:0}
 .hero-num .lead{font-size:1.15rem;font-weight:600}
 .big{display:flex;align-items:flex-start;color:var(--red)}
-.big .n{font-weight:900;font-size:clamp(150px,30vw,400px);line-height:.78;letter-spacing:-.06em}
-.big .pc{font-weight:900;font-size:clamp(48px,8vw,96px);line-height:1;margin-top:.1em;color:var(--ink)}
+.hero-num{container-type:inline-size}
+.big{flex-wrap:nowrap;max-width:100%}
+.big .n{font-weight:900;font-size:clamp(150px,30vw,400px);font-size:min(400px,52cqi);line-height:.78;letter-spacing:-.06em;white-space:nowrap}
+.big[data-len="1"] .n{font-size:min(400px,70cqi)}
+.big[data-len="3"] .n{font-size:min(300px,36cqi)}
+.big .pc{font-weight:900;font-size:clamp(48px,8vw,96px);font-size:min(96px,13cqi);line-height:1;margin-top:.1em;color:var(--ink);flex:none}
 .hero-side .ctls{grid-template-columns:minmax(0,1fr)}
 .hero-side{grid-column:span 5;display:flex;flex-direction:column;justify-content:flex-end;gap:24px;min-width:0}
 .notice{font-size:.85rem;display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}
@@ -588,7 +592,9 @@ footer a:hover{color:var(--red)}
 
     // Income
     const ri = C.pct(KNOTS.inc, inc);
-    $("s-inc").textContent = ri.edge === "high" ? "95+" : String(Math.round(ri.p));
+    const bigTxt = ri.edge === "high" ? "95+" : String(Math.round(ri.p));
+    $("s-inc").textContent = bigTxt;
+    $("s-inc").parentElement.setAttribute("data-len", String(bigTxt.length));
     $("s-inc-sub").textContent = "Rank " + C.rankText(ri, "inc") + " at " + fmt(inc) + ". US median $82k.";
     const ageX = inc / (age.inc[0] * K);
     $("s-age").textContent = xs(ageX);

@@ -132,7 +132,9 @@
 
     // Income
     const ri = C.pct(KNOTS.inc, inc);
-    $("s-inc").textContent = ri.edge === "high" ? "95+" : String(Math.round(ri.p));
+    const bigTxt = ri.edge === "high" ? "95+" : String(Math.round(ri.p));
+    $("s-inc").textContent = bigTxt;
+    $("s-inc").parentElement.setAttribute("data-len", String(bigTxt.length));
     $("s-inc-sub").textContent = "Rank " + C.rankText(ri, "inc") + " at " + fmt(inc) + ". US median $82k.";
     const ageX = inc / (age.inc[0] * K);
     $("s-age").textContent = xs(ageX);
