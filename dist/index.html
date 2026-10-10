@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>WealthWise</title>
+<meta name="description" content="Move the sliders to see where your household's income, net worth, home, retirement savings, debt and spending rank against the Federal Reserve's 2025 Survey of Consumer Finances.">
+<meta property="og:title" content="WealthWise: Where do I stand?">
+<meta property="og:description" content="Rank your household against 135 million US families using the Fed's 2025 Survey of Consumer Finances.">
+<meta name="color-scheme" content="light dark">
+<script>try{var t=localStorage.getItem("scf-fit-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;900&display=swap">
+<style>
+/* Layout: Swiss poster. A strict 12 column grid, heavy rules, one giant red numeral in the hero,
+   then full width topic rows: title (3 cols) | controls + meter (5) | headline figure + reading (4). */
+:root{
+  --bg:#FFFFFF; --ink:#111111; --muted:#5A5A5A; --rule:#111111; --hair:#D4D4D4; --soft:#F3F3F3;
+  --red:#E30613; --red-ink:#FFFFFF;
+  --sans:"Archivo","Helvetica Neue",Helvetica,Arial,sans-serif;
+  --mono:"Archivo",ui-monospace,Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0C0C0C; --ink:#F2F2F2; --muted:#A3A3A3; --rule:#F2F2F2; --hair:#333333; --soft:#1A1A1A;
+  --red:#FF2E3B; --red-ink:#0C0C0C; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0C0C0C; --ink:#F2F2F2; --muted:#A3A3A3; --rule:#F2F2F2; --hair:#333333; --soft:#1A1A1A;
+  --red:#FF2E3B; --red-ink:#0C0C0C; color-scheme:dark}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5}
+.wrap{max-width:1280px;margin:0 auto;padding-inline:clamp(16px,4vw,56px);padding-block:28px 64px}
+.tab{font-variant-numeric:tabular-nums}
+h1,h2{margin:0;text-wrap:balance}
+button{font:inherit;color:inherit;cursor:pointer;background:none}
+:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+.caps{font-size:.78rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.muted{color:var(--muted)}
+
+/* masthead */
+.mast{display:flex;flex-wrap:wrap;gap:8px 24px;justify-content:space-between;align-items:center;border-bottom:4px solid var(--rule);padding-bottom:12px}
+.mast .links{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.mast a{color:inherit}
+.brand{font-size:1.15rem;font-weight:900;letter-spacing:-.01em;line-height:1}
+.btn{border:2px solid var(--ink);padding:5px 12px;font-size:.78rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.btn:hover{background:var(--ink);color:var(--bg)}
+
+/* hero */
+.hero{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:20px;row-gap:28px;padding-block:28px 40px;border-bottom:4px solid var(--rule)}
+.hero-num{grid-column:span 7;display:flex;flex-direction:column;justify-content:flex-end;min-width:0}
+.hero-num .lead{font-size:1.15rem;font-weight:600}
+.big{display:flex;align-items:flex-start;color:var(--red)}
+.big .n{font-weight:900;font-size:clamp(150px,30vw,400px);line-height:.78;letter-spacing:-.06em}
+.big .pc{font-weight:900;font-size:clamp(48px,8vw,96px);line-height:1;margin-top:.1em;color:var(--ink)}
+.hero-side{grid-column:span 5;display:flex;flex-direction:column;justify-content:flex-end;gap:24px;min-width:0}
+.notice{font-size:.85rem;display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}
+.notice b{font-weight:600}
+.link-btn{text-decoration:underline;text-underline-offset:3px;font-size:.85rem;padding:0}
+
+.facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border-top:4px solid var(--rule)}
+.fact{padding:14px 14px 14px 0;border-bottom:1px solid var(--rule);display:flex;flex-direction:column;gap:2px;min-width:0}
+.fact:nth-child(odd){border-right:1px solid var(--rule)}
+.fact:nth-child(even){padding-left:14px}
+.fact .v{font-size:2.1rem;font-weight:900;letter-spacing:-.02em;line-height:1.1}
+.fact .s{font-size:.8rem;color:var(--muted)}
+
+/* profile */
+.profile{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px;padding-block:22px;border-bottom:1px solid var(--rule)}
+.group{display:flex;flex-direction:column;gap:8px;min-width:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:2px solid var(--ink);padding:5px 10px;font-size:.84rem;font-weight:600;min-height:36px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.chip:hover:not([aria-pressed="true"]){background:var(--soft)}
+
+/* topic rows */
+.row{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:20px;row-gap:20px;padding-block:28px 32px;border-bottom:1px solid var(--rule)}
+.row-title{grid-column:span 3;display:flex;flex-direction:column;gap:10px;min-width:0}
+.row-title h2{font-size:1.9rem;font-weight:900;letter-spacing:-.02em;line-height:1}
+.row-ctl{grid-column:span 5;display:flex;flex-direction:column;gap:18px;min-width:0}
+.row-out{grid-column:span 4;display:flex;flex-direction:column;gap:10px;min-width:0}
+.fig{font-size:3.6rem;font-weight:900;letter-spacing:-.03em;line-height:.95;color:var(--red)}
+.fig-cap{font-size:.8rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.read{margin:0;max-width:60ch}
+.read b{font-weight:700}
+.src{font-size:.74rem;color:var(--muted);margin:0}
+
+.verdict{align-self:flex-start;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border:2px solid currentColor}
+.v-hi,.v-bad{background:var(--red);border-color:var(--red);color:var(--red-ink)}
+.v-warn{color:var(--red)}
+.v-ok{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.v-mid{color:var(--ink)}
+.v-lo{color:var(--muted)}
+
+/* controls */
+.ctls{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px 24px}
+.ctl{display:flex;flex-direction:column;gap:6px;min-width:0}
+.ctl-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.ctl label{font-size:.78rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+.ctl input[type=text]{width:8.5em;text-align:right;border:0;border-bottom:2px solid var(--ink);background:transparent;color:var(--ink);font-family:var(--sans);font-weight:900;font-size:1.25rem;padding:0 2px;font-variant-numeric:tabular-nums}
+.ctl input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:28px;background:transparent;margin:0}
+.ctl input[type=range]::-webkit-slider-runnable-track{height:4px;background:var(--ink)}
+.ctl input[type=range]::-moz-range-track{height:4px;background:var(--ink)}
+.ctl input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:28px;background:var(--red);border:0;margin-top:-12px;border-radius:0}
+.ctl input[type=range]::-moz-range-thumb{width:18px;height:28px;background:var(--red);border:0;border-radius:0}
+
+/* meter */
+.meter{position:relative;height:96px;margin-inline:2px}
+.m-band{position:absolute;left:0;right:0;top:46px;height:2px;background:var(--ink)}
+.m-tick{position:absolute;top:40px;width:2px;height:14px;background:var(--ink)}
+.m-tl{position:absolute;top:22px;font-size:.68rem;font-weight:600;transform:translateX(-50%);white-space:nowrap}
+.m-ref{position:absolute;top:47px;width:0;height:12px;border-left:1px solid var(--muted)}
+.m-rl{position:absolute;font-size:.68rem;color:var(--muted);transform:translateX(-50%);white-space:nowrap}
+.m-you{position:absolute;top:28px;width:6px;height:38px;margin-left:-3px;background:var(--red);transition:left .12s linear}
+.m-yl{position:absolute;top:0;transform:translateX(-50%);font-size:.76rem;font-weight:900;color:var(--red);white-space:nowrap;transition:left .12s linear}
+@media (prefers-reduced-motion:reduce){.m-you,.m-yl{transition:none}}
+
+/* tables and stats */
+.tbl{overflow-x:auto}
+table.cmp{width:100%;border-collapse:collapse;font-size:.86rem;font-variant-numeric:tabular-nums}
+.cmp th,.cmp td{text-align:left;padding:6px 8px 6px 0;border-bottom:1px solid var(--hair)}
+.cmp thead th{border-bottom:2px solid var(--rule);font-size:.7rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.cmp .r{text-align:right;padding-right:0;padding-left:8px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));border-top:2px solid var(--rule)}
+.stat{display:flex;flex-direction:column;gap:2px;padding:10px 12px 10px 0;border-bottom:1px solid var(--hair);min-width:0}
+.stat .k{font-size:.7rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+.stat .v{font-size:1.3rem;font-weight:900;font-variant-numeric:tabular-nums}
+.stat .c{font-size:.76rem;color:var(--muted)}
+
+footer{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:20px;padding-top:24px;font-size:.8rem;color:var(--muted)}
+footer .f-a{grid-column:span 3;font-weight:600;color:var(--ink);text-transform:uppercase;letter-spacing:.05em}
+footer .f-b{grid-column:span 9;display:flex;flex-direction:column;gap:8px;max-width:80ch}
+footer p{margin:0}
+footer a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--red);text-decoration-thickness:2px;text-underline-offset:3px}
+footer a:hover{color:var(--red)}
+
+@media (max-width:960px){
+  .hero-num,.hero-side{grid-column:1/-1}
+  .profile{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .row-title{grid-column:1/-1}
+  .row-ctl{grid-column:span 7}
+  .row-out{grid-column:span 5}
+}
+@media (max-width:700px){
+  .row-ctl,.row-out{grid-column:1/-1}
+  .profile{grid-template-columns:minmax(0,1fr)}
+  footer .f-a,footer .f-b{grid-column:1/-1}
+  .fig{font-size:3rem}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="mast">
+    <h1 class="brand">WealthWise</h1>
+    <span class="caps">Where do I stand?</span>
+    <div class="links">
+      <a class="caps" href="https://github.com/lor3nzo/wealthwise" target="_blank" rel="noopener">Code</a>
+      <button class="btn" id="themeBtn" type="button">Theme: System</button>
+    </div>
+  </div>
+
+  <section class="hero" aria-label="Your income rank">
+    <div class="hero-num">
+      <span class="lead">Your income beats</span>
+      <div class="big" aria-live="polite"><span class="n tab" id="s-inc">75</span><span class="pc">%</span></div>
+      <span class="lead">of American families. <span class="muted" id="s-inc-sub"></span></span>
+    </div>
+    <div class="hero-side">
+      <div class="ctls"><div class="ctl" data-ctl="income"></div><div class="ctl" data-ctl="nw"></div></div>
+      <div class="facts">
+        <div class="fact"><span class="caps">Net worth rank</span><span class="v tab" id="s-nw"></span><span class="s" id="s-nw-sub"></span></div>
+        <div class="fact"><span class="caps">Income vs your age</span><span class="v tab" id="s-age"></span><span class="s" id="s-age-sub"></span></div>
+        <div class="fact"><span class="caps">Debt payments</span><span class="v tab" id="s-pti"></span><span class="s" id="s-pti-sub"></span></div>
+        <div class="fact"><span class="caps">Leverage</span><span class="v tab" id="s-lev"></span><span class="s" id="s-lev-sub"></span></div>
+      </div>
+      <div class="notice"><span id="sampleNote"></span><button class="link-btn" id="resetBtn" type="button">Reset to sample</button></div>
+    </div>
+  </section>
+
+  <section class="profile" aria-label="Your profile">
+    <div class="group"><span class="caps">Age</span><div class="chips" data-group="age"></div></div>
+    <div class="group"><span class="caps">Education</span><div class="chips" data-group="edu"></div></div>
+    <div class="group"><span class="caps">Housing</span><div class="chips" data-group="house"></div></div>
+    <div class="group"><span class="caps">Where you live</span><div class="chips" data-group="metro"></div></div>
+  </section>
+
+  <section class="row" aria-labelledby="h-inc">
+    <div class="row-title"><h2 id="h-inc">Income</h2><span class="verdict" id="v-inc"></span><p class="src">Before tax family income for 2024. Table 1, Table A.2 (p.7, p.48).</p></div>
+    <div class="row-ctl">
+      <div class="meter" role="img" id="m-inc"></div>
+      <div class="tbl"><table class="cmp"><thead><tr><th>Families like you</th><th class="r">Median</th><th class="r">Mean</th><th class="r">You vs median</th></tr></thead><tbody id="t-inc"></tbody></table></div>
+    </div>
+    <div class="row-out"><span class="fig tab" id="f-inc"></span><span class="fig-cap">Your age group's median</span><p class="read" id="r-inc"></p></div>
+  </section>
+
+  <section class="row" aria-labelledby="h-nw">
+    <div class="row-title"><h2 id="h-nw">Net worth</h2><span class="verdict" id="v-nw"></span><p class="src">Assets minus debts. Table 2, Table A.2 (p.12, p.48). Type a minus sign for negative values.</p></div>
+    <div class="row-ctl">
+      <div class="meter" role="img" id="m-nw"></div>
+      <div class="tbl"><table class="cmp"><thead><tr><th>Families like you</th><th class="r">Median</th><th class="r">Mean</th><th class="r">You vs median</th></tr></thead><tbody id="t-nw"></tbody></table></div>
+    </div>
+    <div class="row-out"><span class="fig tab" id="f-nw"></span><span class="fig-cap">Your age group's median</span><p class="read" id="r-nw"></p></div>
+  </section>
+
+  <section class="row" aria-labelledby="h-home">
+    <div class="row-title"><h2 id="h-home">Home</h2><span class="verdict" id="v-home"></span><p class="src">Box 4 (p.22 to 23), Tables 3 and 4. Equity is value minus all home secured debt.</p></div>
+    <div class="row-ctl">
+      <div class="ctls" id="homeCtls"><div class="ctl" data-ctl="home"></div><div class="ctl" data-ctl="mortgage"></div></div>
+      <div class="meter" role="img" id="m-home"></div>
+      <div class="stats" id="st-home"></div>
+    </div>
+    <div class="row-out"><span class="fig tab" id="f-home"></span><span class="fig-cap" id="f-home-cap">Your home equity</span><p class="read" id="r-home"></p></div>
+  </section>
+
+  <section class="row" aria-labelledby="h-ret">
+    <div class="row-title"><h2 id="h-ret">Retirement</h2><span class="verdict" id="v-ret"></span><p class="src">IRAs and DC plans such as 401(k)s. Box 2 Table A (p.18), Table 3. Excludes Social Security and pensions.</p></div>
+    <div class="row-ctl">
+      <div class="ctls"><div class="ctl" data-ctl="ret"></div></div>
+      <div class="meter" role="img" id="m-ret"></div>
+      <div class="stats" id="st-ret"></div>
+    </div>
+    <div class="row-out"><span class="fig tab" id="f-ret"></span><span class="fig-cap" id="f-ret-cap">The typical holder</span><p class="read" id="r-ret"></p></div>
+  </section>
+
+  <section class="row" aria-labelledby="h-debt">
+    <div class="row-title"><h2 id="h-debt">Debt load</h2><span class="verdict" id="v-debt"></span><p class="src">Table 5 (p.30). Medians among families with debt. Assets estimated as net worth plus debt.</p></div>
+    <div class="row-ctl">
+      <div class="ctls"><div class="ctl" data-ctl="debt"></div><div class="ctl" data-ctl="pay"></div></div>
+      <div class="stats" id="st-debt"></div>
+    </div>
+    <div class="row-out"><span class="fig tab" id="f-debt"></span><span class="fig-cap">Of income to debt payments</span><p class="read" id="r-debt"></p></div>
+  </section>
+
+  <section class="row" aria-labelledby="h-cc">
+    <div class="row-title"><h2 id="h-cc">Cards and student loans</h2><span class="verdict" id="v-cc"></span><p class="src">Table 4 (p.25). Card debt counts balances left after the last payment.</p></div>
+    <div class="row-ctl">
+      <div class="ctls"><div class="ctl" data-ctl="cc"></div><div class="ctl" data-ctl="stud"></div></div>
+      <div class="meter" role="img" id="m-cc"></div>
+    </div>
+    <div class="row-out"><span class="fig tab" id="f-cc"></span><span class="fig-cap">Card balance carried</span><p class="read" id="r-cc"></p></div>
+  </section>
+
+  <section class="row" aria-labelledby="h-sp">
+    <div class="row-title"><h2 id="h-sp">Spending</h2><span class="verdict" id="v-sp"></span><p class="src">Box 1 (p.9 to 10). Twelve months, excluding housing. New in the 2025 survey.</p></div>
+    <div class="row-ctl">
+      <div class="ctls"><div class="ctl" data-ctl="spend"></div><div class="ctl" data-ctl="vac"></div></div>
+      <div class="meter" role="img" id="m-sp"></div>
+    </div>
+    <div class="row-out"><span class="fig tab" id="f-sp"></span><span class="fig-cap">The median family's spending</span><p class="read" id="r-sp"></p></div>
+  </section>
+
+  <footer>
+    <span class="f-a">Method and source</span>
+    <div class="f-b">
+      <p>Percentiles are interpolated on a log scale between published points: the cutoffs in Table A.2, plus each group's median treated as its midpoint. Above the 95th percentile the report gives no finer cutoffs, so the page shows 95+. Cutoffs use "usual" income while you enter last year's actual income. Treat ranks as approximate, within a few points.</p>
+      <p>Source: <a href="https://www.federalreserve.gov/publications/files/scf26.pdf" target="_blank" rel="noopener"><i>Changes in U.S. Family Finances from 2022 to 2025: Evidence from the Survey of Consumer Finances</i></a>, Aladangady et al., Board of Governors of the Federal Reserve System, October 2026. All figures in 2025 dollars. Nothing you enter leaves your browser.</p>
+      <p>Built by <a href="https://www.linkedin.com/in/lor3nzo/" target="_blank" rel="noopener">Lorenzo T Geraci</a></p>
+    </div>
+  </footer>
+</div>
+<script>
+/*
+ * Benchmarks from: Aladangady et al. (2026), "Changes in U.S. Family Finances
+ * from 2022 to 2025: Evidence from the Survey of Consumer Finances",
+ * Board of Governors of the Federal Reserve System. All values in 2025 dollars.
+ * Group values are [median, mean] in thousands unless noted.
+ */
+(function (root) {
+  "use strict";
+
+  // Table 1 (income, p.7) and Table 2 (net worth, p.12); retirement means from Box 2 Table A (p.18)
+  const AGE = [
+    { k: "a1", l: "Under 35",   inc: [67.8, 89.0],  nw: [33.0, 135.4],   ret: 48.4 },
+    { k: "a2", l: "35 to 44",   inc: [97.0, 139.8], nw: [155.6, 681.9],  ret: 182.4 },
+    { k: "a3", l: "45 to 54",   inc: [108.9, 187.1], nw: [253.7, 1244.5], ret: 415.8 },
+    { k: "a4", l: "55 to 64",   inc: [92.4, 197.6], nw: [411.9, 1878.0], ret: 670.2 },
+    { k: "a5", l: "65 to 74",   inc: [69.4, 138.4], nw: [431.3, 1897.6], ret: null },
+    { k: "a6", l: "75 or more", inc: [66.8, 125.1], nw: [504.9, 1962.2], ret: null }
+  ];
+  const EDU = [
+    { k: "e1", l: "No HS diploma",  inc: [36.3, 52.3],   nw: [18.6, 294.3] },
+    { k: "e2", l: "High school",    inc: [60.6, 82.7],   nw: [106.7, 470.6] },
+    { k: "e3", l: "Some college",   inc: [69.0, 95.9],   nw: [181.0, 661.2] },
+    { k: "e4", l: "College degree", inc: [129.2, 232.9], nw: [505.4, 2263.3] }
+  ];
+  const HOUSE = [
+    { k: "own",  l: "Own",           inc: [108.9, 184.6], nw: [458.9, 1812.9] },
+    { k: "rent", l: "Rent or other", inc: [50.3, 70.3],   nw: [10.6, 153.5] }
+  ];
+  const METRO = [
+    { k: "msa", l: "Metro area",    inc: [84.2, 153.5], nw: [231.3, 1337.7] },
+    { k: "non", l: "Outside metro", inc: [67.5, 88.3],  nw: [150.1, 577.1] }
+  ];
+  const ALL = { inc: [82.2, 145.2], nw: [215.9, 1241.5] };
+
+  /*
+   * Percentile knots [dollars, percentile].
+   * Exact cutoffs: Table A.2 (p.48). Approximate midpoints: each group's
+   * median from Tables 1 and 2, placed at the group's middle percentile.
+   */
+  const KNOTS = {
+    inc: [[0, 0], [24600, 10], [40100, 20], [50500, 30], [66800, 40], [84200, 50],
+          [103600, 60], [129200, 70], [174400, 80], [201300, 85], [248500, 90], [387200, 95]],
+    nw:  [[1700, 12.5], [27900, 25], [100900, 37.5], [215900, 50], [405700, 62.5],
+          [812800, 75], [1267500, 82.5], [2539200, 90], [4935200, 95]]
+  };
+
+  // Point benchmarks used by the topic cards (dollars or percent)
+  const BENCH = {
+    homeMedianValue: 375000,      // Table 3
+    homeEquityMedian: 230000,     // Box 4
+    homeEquityMean: 380400,       // Box 4
+    mortgageMedian: 183600,       // Table 4
+    priceToIncome: 4.5,           // Box 4 Figure B
+    retMedian: 106000,            // Table 3, holders
+    retMean: 451100,              // Table 3, holders
+    retHoldShare: 54.9,           // Table 3
+    debtMedian: 88100,            // Table 4, holders
+    debtShare: 77.0,              // Table 4
+    ptiMedian: 15.4,              // Table 5
+    dtiMedian: 94.8,              // Table 5
+    levMedian: 26.9,              // Table 5
+    ptiOver40Share: 8.6,          // Table 5
+    lateShare: 19.6,              // Table 5
+    ccMedian: 3100, ccMean: 8000, ccShare: 44.7, ccNoBalance: 55.8, ccRate: 21.4, // Table 4, Table 5, p.25
+    studMedian: 25600, studMean: 43000, studShare: 20.0, // Table 4
+    spendMedian: 33700, spendMean: 48700,                // Box 1
+    spendBottom20: 17600, spend80to90: 68700, spendTop10: 138800, // Box 1
+    vacTravelerMedian: 3500, vacNoneShare: 39            // Box 1
+  };
+
+  const API = { AGE, EDU, HOUSE, METRO, ALL, KNOTS, BENCH };
+  if (typeof module !== "undefined" && module.exports) module.exports = API;
+  else root.SCF = API;
+})(this);
+</script>
+<script>
+/* Pure functions: formatting, parsing, slider scales, percentile interpolation. No DOM. */
+(function (root) {
+  "use strict";
+
+  const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
+
+  function fmt(v) {
+    if (!Number.isFinite(v)) return "n/a";
+    const a = Math.abs(v), s = v < 0 ? "−" : "";
+    if (a >= 1e6) return s + "$" + (a / 1e6).toFixed(a >= 1e7 ? 1 : 2) + "M";
+    if (a >= 1e4) return s + "$" + Math.round(a / 1e3) + "k";
+    return s + "$" + Math.round(a).toLocaleString("en-US");
+  }
+  const full = v => (v < 0 ? "−$" : "$") + Math.round(Math.abs(v)).toLocaleString("en-US");
+
+  // Round to a step that scales with magnitude so slider values look human
+  function nice(v) {
+    const a = Math.abs(v);
+    const st = a < 1000 ? 10 : a < 1e4 ? 100 : a < 1e5 ? 500 : a < 1e6 ? 5000 : a < 1e7 ? 50000 : 100000;
+    return Math.round(v / st) * st;
+  }
+
+  // Accepts "120000", "$120,000", "120k", "1.2m", "-50k", "−50k"
+  function parse(t) {
+    let s = String(t).trim().toLowerCase().replace(/[$,\s]/g, "").replace(/−/g, "-");
+    let m = 1;
+    if (s.endsWith("k")) { m = 1e3; s = s.slice(0, -1); }
+    else if (s.endsWith("m")) { m = 1e6; s = s.slice(0, -1); }
+    if (!/^-?\d*\.?\d+$/.test(s)) return null;
+    return parseFloat(s) * m;
+  }
+
+  // Slider position (0..1000) <-> value. Log scales may reserve position 0 for exactly $0.
+  function toPos(v, c) {
+    if (c.log) {
+      if (c.zero && v <= 0) return 0;
+      return clamp(Math.log(Math.max(v, c.min) / c.min) / Math.log(c.max / c.min) * 1000, c.zero ? 1 : 0, 1000);
+    }
+    return clamp((v - c.min) / (c.max - c.min) * 1000, 0, 1000);
+  }
+  function fromPos(p, c) {
+    if (c.log) {
+      if (c.zero && p <= 0) return 0;
+      return nice(c.min * Math.pow(c.max / c.min, p / 1000));
+    }
+    const step = c.step || 1;
+    return Math.round((c.min + (c.max - c.min) * p / 1000) / step) * step;
+  }
+
+  // Interpolate a percentile from sorted [value, pct] knots: log between positive knots, linear from 0.
+  function pct(knots, v) {
+    const first = knots[0], last = knots[knots.length - 1];
+    if (!(v > first[0])) return { p: first[1], edge: "low" };
+    if (v >= last[0]) return { p: last[1], edge: "high" };
+    for (let i = 1; i < knots.length; i++) {
+      const a = knots[i - 1], b = knots[i];
+      if (v <= b[0]) {
+        const t = a[0] <= 0 ? (v - a[0]) / (b[0] - a[0]) : Math.log(v / a[0]) / Math.log(b[0] / a[0]);
+        return { p: a[1] + t * (b[1] - a[1]) };
+      }
+    }
+    return { p: last[1], edge: "high" };
+  }
+
+  function ord(n) {
+    n = Math.round(n);
+    const s = ["th", "st", "nd", "rd"], v = n % 100;
+    return n + (s[(v - 20) % 10] || s[v] || s[0]);
+  }
+
+  function rankText(r, kind) {
+    if (r.edge === "high") return "Top 5%";
+    if (r.edge === "low") return kind === "nw" ? "Bottom 13%" : "Bottom 1%";
+    return ord(r.p);
+  }
+
+  // "1.4×" style multiple; guards zero and non-finite
+  function xs(r) {
+    if (!Number.isFinite(r) || r <= 0) return "0×";
+    return (r >= 10 ? Math.round(r) : r.toFixed(r >= 2 ? 1 : 2)) + "×";
+  }
+
+  const level = ratio => ratio >= 1.33 ? ["v-hi", "Above typical"] : ratio >= 0.75 ? ["v-mid", "Near typical"] : ["v-lo", "Below typical"];
+  const risk = (x, mid, high) => x >= high ? ["v-bad", "High"] : x >= mid ? ["v-warn", "Elevated"] : ["v-ok", "Healthy"];
+
+  // Merge saved state over defaults, keeping only known keys with valid values
+  function sanitize(saved, defaults, ctl, groups) {
+    const out = Object.assign({}, defaults);
+    if (!saved || typeof saved !== "object") return out;
+    Object.keys(ctl).forEach(k => {
+      const v = saved[k];
+      if (typeof v === "number" && Number.isFinite(v) && (ctl[k].neg || v >= 0) && Math.abs(v) < 1e10) out[k] = v;
+    });
+    Object.keys(groups).forEach(g => {
+      if (groups[g].some(o => o.k === saved[g])) out[g] = saved[g];
+    });
+    return out;
+  }
+
+  const API = { clamp, fmt, full, nice, parse, toPos, fromPos, pct, ord, rankText, xs, level, risk, sanitize };
+  if (typeof module !== "undefined" && module.exports) module.exports = API;
+  else root.SCFCore = API;
+})(this);
+</script>
+<script>
+/* DOM wiring: controls, theme toggle, meters, card copy. Depends on SCF (data.js) and SCFCore (core.js). */
+(function () {
+  "use strict";
+  const { AGE, EDU, HOUSE, METRO, ALL, KNOTS, BENCH: B } = window.SCF;
+  const C = window.SCFCore;
+  const { fmt, full, xs, level, risk } = C;
+  const K = 1000;
+  const STORE = "scf-fit", THEME_STORE = "scf-fit-theme";
+
+  const CTL = {
+    income:   { l: "Household income (year)",        min: 5000, max: 2e6,   log: 1 },
+    nw:       { l: "Net worth",                       min: 1000, max: 5e7,   log: 1, neg: 1 },
+    home:     { l: "Home value",                      min: 50000, max: 5e6,  log: 1 },
+    mortgage: { l: "Mortgage and HELOC balance",      min: 5000, max: 3e6,   log: 1, zero: 1 },
+    ret:      { l: "Retirement accounts",             min: 1000, max: 5e6,   log: 1, zero: 1 },
+    debt:     { l: "Total debt (all types)",          min: 1000, max: 3e6,   log: 1, zero: 1 },
+    pay:      { l: "Monthly debt payments",           min: 0,    max: 20000, step: 50 },
+    cc:       { l: "Credit card balance carried",     min: 100,  max: 50000, log: 1, zero: 1 },
+    stud:     { l: "Student loan balance",            min: 1000, max: 300000, log: 1, zero: 1 },
+    spend:    { l: "Yearly spending, excl. housing",  min: 5000, max: 500000, log: 1 },
+    vac:      { l: "Vacation spending (year)",        min: 100,  max: 100000, log: 1, zero: 1 }
+  };
+  const GROUPS = { age: AGE, edu: EDU, house: HOUSE, metro: METRO };
+  const SAMPLE = { age: "a3", edu: "e4", house: "own", metro: "msa", income: 150000, nw: 600000, home: 650000,
+    mortgage: 320000, ret: 350000, debt: 340000, pay: 2600, cc: 0, stud: 0, spend: 55000, vac: 5000 };
+
+  const $ = id => document.getElementById(id);
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* storage blocked: page still works */ } }
+  };
+  let saved = null;
+  try { saved = JSON.parse(store.get(STORE) || "null"); } catch (e) { saved = null; }
+  let S = C.sanitize(saved, SAMPLE, CTL, GROUPS);
+
+  /* ---------- theme toggle: system -> light -> dark ---------- */
+  const THEMES = ["system", "light", "dark"];
+  let theme = THEMES.includes(store.get(THEME_STORE)) ? store.get(THEME_STORE) : "system";
+  function applyTheme() {
+    const root = document.documentElement;
+    if (theme === "system") root.removeAttribute("data-theme"); else root.setAttribute("data-theme", theme);
+    const b = $("themeBtn");
+    b.textContent = "Theme: " + theme[0].toUpperCase() + theme.slice(1);
+    b.setAttribute("aria-label", "Color theme: " + theme + ". Click to change.");
+  }
+  $("themeBtn").addEventListener("click", () => {
+    theme = THEMES[(THEMES.indexOf(theme) + 1) % THEMES.length];
+    store.set(THEME_STORE, theme);
+    applyTheme();
+  });
+  applyTheme();
+
+  /* ---------- controls ---------- */
+  document.querySelectorAll("[data-ctl]").forEach(el => {
+    const id = el.dataset.ctl, c = CTL[id];
+    el.innerHTML = '<div class="ctl-head"><label for="r-' + id + '">' + c.l + '</label>' +
+      '<input type="text" inputmode="decimal" id="t-' + id + '" aria-label="' + c.l + ', exact value"></div>' +
+      '<input type="range" id="r-' + id + '" min="0" max="1000" step="1">';
+    const r = $("r-" + id), t = $("t-" + id);
+    r.addEventListener("input", () => { S[id] = C.fromPos(+r.value, c); t.value = full(S[id]); update(); });
+    t.addEventListener("change", () => {
+      let v = C.parse(t.value);
+      if (v === null) { t.value = full(S[id]); return; }
+      if (!c.neg && v < 0) v = 0;
+      S[id] = v; r.value = C.toPos(v, c); t.value = full(v); update();
+    });
+  });
+  function syncCtls() {
+    Object.keys(CTL).forEach(id => { $("r-" + id).value = C.toPos(S[id], CTL[id]); $("t-" + id).value = full(S[id]); });
+  }
+
+  document.querySelectorAll("[data-group]").forEach(el => {
+    const g = el.dataset.group;
+    GROUPS[g].forEach(o => {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "chip"; b.textContent = o.l; b.dataset.k = o.k;
+      b.addEventListener("click", () => { S[g] = o.k; update(); });
+      el.appendChild(b);
+    });
+  });
+  function syncChips() {
+    document.querySelectorAll("[data-group]").forEach(el => {
+      const g = el.dataset.group;
+      el.querySelectorAll(".chip").forEach(b => b.setAttribute("aria-pressed", b.dataset.k === S[g] ? "true" : "false"));
+    });
+  }
+  const pick = g => GROUPS[g].find(o => o.k === S[g]) || GROUPS[g][0];
+
+  /* ---------- rendering helpers ---------- */
+  function verdict(el, cls, txt) { el.className = "verdict " + cls; el.textContent = txt; }
+
+  // Log-scale meter. o.you is the true value; it is clamped for position only, never for the label.
+  function meter(id, o) {
+    const lo = o.min, hi = o.max;
+    const P = v => C.clamp(Math.log(Math.max(v, lo) / lo) / Math.log(hi / lo), 0, 1) * 100;
+    const L = x => C.clamp(x, 6, 94);
+    let h = '<div class="m-band"></div>';
+    (o.ticks || []).forEach(([v, lab]) => {
+      const x = P(v);
+      h += '<span class="m-tick" style="left:' + x + '%"></span><span class="m-tl" style="left:' + L(x) + '%">' + lab + '</span>';
+    });
+    (o.refs || []).forEach(([v, lab], i) => {
+      const x = P(v);
+      h += '<span class="m-ref" style="left:' + x + '%"></span><span class="m-rl" style="left:' + L(x) + '%;top:' + (i % 2 ? 76 : 60) + 'px">' + lab + '</span>';
+    });
+    const yx = P(o.you), off = o.you < 0 ? " (below scale)" : (o.you > 0 && o.you < lo) || o.you > hi ? " (off scale)" : "";
+    h += '<span class="m-you" style="left:' + yx + '%"></span><span class="m-yl" style="left:' + L(yx) + '%">You · ' + fmt(o.you) + off + '</span>';
+    const el = $(id);
+    el.innerHTML = h;
+    el.setAttribute("aria-label", "Your value " + fmt(o.you) + ". " + (o.refs || []).map(r => r[1]).join(". "));
+  }
+
+  function cmpRows(tb, key, you) {
+    const h = pick("house");
+    const rows = [["All families", ALL[key]], [pick("age").l, pick("age")[key]], [pick("edu").l, pick("edu")[key]],
+      [h.k === "own" ? "Homeowners" : "Renters", h[key]], [pick("metro").l, pick("metro")[key]]];
+    $(tb).innerHTML = rows.map(([n, [md, mn]]) =>
+      '<tr><td>' + n + '</td><td class="r tab">' + fmt(md * K) + '</td><td class="r tab">' + fmt(mn * K) +
+      '</td><td class="r tab"><b>' + (you > 0 ? xs(you / (md * K)) : "n/a") + '</b></td></tr>').join("");
+  }
+  function stats(id, arr) {
+    $(id).innerHTML = arr.map(([k, v, c]) =>
+      '<div class="stat"><span class="k">' + k + '</span><span class="v">' + v + '</span><span class="c">' + (c || "") + '</span></div>').join("");
+  }
+  const pctStr = x => Number.isFinite(x) ? x.toFixed(1) + "%" : "n/a";
+
+  /* ---------- main update ---------- */
+  function update() {
+    syncChips();
+    store.set(STORE, JSON.stringify(S));
+    const age = pick("age"), inc = S.income, nw = S.nw, ageLc = age.l.toLowerCase();
+
+    // Income
+    const ri = C.pct(KNOTS.inc, inc);
+    $("s-inc").textContent = ri.edge === "high" ? "95+" : String(Math.round(ri.p));
+    $("s-inc-sub").textContent = "Rank " + C.rankText(ri, "inc") + " at " + fmt(inc) + ". US median $82k.";
+    const ageX = inc / (age.inc[0] * K);
+    $("s-age").textContent = xs(ageX);
+    $("s-age-sub").textContent = "Median, " + ageLc + ": " + fmt(age.inc[0] * K);
+    $("f-inc").textContent = xs(ageX);
+    verdict($("v-inc"), ...level(inc / (age.inc[0] * K)));
+    meter("m-inc", { min: 10000, max: 1e6, you: inc,
+      ticks: [[40100, "P20"], [84200, "P50"], [174400, "P80"], [248500, "P90"], [387200, "≈P95"]],
+      refs: [[age.inc[0] * K, "Median, " + ageLc], [ALL.inc[1] * K, "US mean"]] });
+    const incBeat = ri.edge === "high" ? "more than about 95% of US families" : "more than about " + Math.round(ri.p) + "% of US families";
+    $("r-inc").innerHTML = "You earn " + incBeat + ". That is <b>" + xs(inc / (age.inc[0] * K)) +
+      "</b> the median for families aged " + ageLc + " (" + fmt(age.inc[0] * K) + ").";
+    cmpRows("t-inc", "inc", inc);
+
+    // Net worth
+    const rn = C.pct(KNOTS.nw, nw);
+    $("s-nw").textContent = C.rankText(rn, "nw");
+    $("s-nw-sub").textContent = fmt(nw) + " vs US median $216k";
+    $("f-nw").textContent = nw > 0 ? xs(nw / (age.nw[0] * K)) : fmt(nw);
+    verdict($("v-nw"), ...level(nw / (age.nw[0] * K)));
+    meter("m-nw", { min: 1000, max: 2e7, you: nw,
+      ticks: [[27900, "P25"], [215900, "P50"], [812800, "P75"], [2539200, "P90"], [4935200, "≈P95"]],
+      refs: [[age.nw[0] * K, "Median, " + ageLc], [ALL.nw[1] * K, "US mean"]] });
+    const nwLead = rn.edge === "low"
+      ? "Your net worth is at or below the bottom quartile's typical $1,700, so roughly 87% of US families have more."
+      : "Your net worth is " + (rn.edge === "high" ? "more than about 95%" : "more than about " + Math.round(rn.p) + "%") + " of US families.";
+    $("r-nw").innerHTML = nwLead + (nw > 0
+      ? " Against families aged " + ageLc + " you hold <b>" + xs(nw / (age.nw[0] * K)) + "</b> their median of " + fmt(age.nw[0] * K) + "."
+      : " The median for families aged " + ageLc + " is " + fmt(age.nw[0] * K) + ".");
+    cmpRows("t-nw", "nw", nw);
+
+    // Home
+    const own = S.house === "own";
+    $("homeCtls").hidden = !own; $("m-home").hidden = !own; $("st-home").hidden = !own;
+    if (own) {
+      const eq = S.home - S.mortgage, p2i = inc > 0 ? S.home / inc : Infinity;
+      $("f-home").textContent = fmt(eq); $("f-home-cap").textContent = "Your home equity. Median owner $230k";
+      verdict($("v-home"), ...level(eq / B.homeEquityMedian));
+      meter("m-home", { min: 10000, max: 5e6, you: eq,
+        ticks: [[B.homeMedianValue, "Median home $375k"]],
+        refs: [[B.homeEquityMedian, "Median equity $230k"], [B.homeEquityMean, "Mean $380k"]] });
+      $("r-home").innerHTML = "Your net housing value is <b>" + fmt(eq) + "</b>, " + xs(eq / B.homeEquityMedian) +
+        " the median owner's $230,000. Your home costs <b>" + (Number.isFinite(p2i) ? p2i.toFixed(1) + "×" : "n/a") +
+        "</b> your income; for the median family the ratio is above 4.5, near the survey's record.";
+      stats("st-home", [
+        ["Home value", fmt(S.home), "Median owner $375k"],
+        ["Mortgage balance", fmt(S.mortgage), S.mortgage > 0 ? "Median among borrowers $184k" : "Like 1 in 3 owners, debt free"],
+        ["Price to income", Number.isFinite(p2i) ? p2i.toFixed(1) + "×" : "n/a", "US median above 4.5×"]]);
+    } else {
+      verdict($("v-home"), "v-mid", "Renter");
+      $("f-home").textContent = "$10.6k"; $("f-home-cap").textContent = "Renters' median net worth";
+      $("r-home").innerHTML = "Renters had a median net worth of <b>$10,600</b> in 2025 versus <b>$458,900</b> for owners. " +
+        "66% of families own their home. A 30 year mortgage on the median home with 20% down, plus property tax, now takes about 33% of median monthly income, the highest the survey has recorded.";
+    }
+
+    // Retirement
+    const rm = age.ret ? age.ret * K : null;
+    verdict($("v-ret"), ...level(S.ret / (rm || B.retMedian)));
+    $("f-ret").textContent = S.ret > 0 ? xs(S.ret / (rm || B.retMedian)) : "$0";
+    $("f-ret-cap").textContent = S.ret > 0 ? (rm ? "Average holder aged " + ageLc : "Median holder, all ages") : "No retirement account";
+    meter("m-ret", { min: 1000, max: 5e6, you: S.ret,
+      refs: rm ? [[B.retMedian, "All holders median $106k"], [rm, "Mean, " + ageLc]]
+               : [[B.retMedian, "Median $106k"], [B.retMean, "Mean $451k"]] });
+    $("r-ret").innerHTML = S.ret <= 0
+      ? "About 45% of families hold no retirement account. Among families under 65, 65.1% take part in some plan, pensions included."
+      : rm ? "Among families aged " + ageLc + " with an IRA or DC plan, the average balance is " + fmt(rm) + ". You hold <b>" + xs(S.ret / rm) + "</b> that."
+           : "The median balance among all holders is $106,000 and the mean $451,100. You hold <b>" + xs(S.ret / B.retMedian) + "</b> the median.";
+    stats("st-ret", [["Your balance", fmt(S.ret), ""], ["Holders' median", fmt(B.retMedian), "54.9% of families hold one"],
+      ["Holders' mean", fmt(rm || B.retMean), rm ? "Age " + ageLc : "All ages"]]);
+
+    // Debt
+    const pti = S.debt <= 0 ? 0 : inc > 0 ? S.pay * 12 / inc * 100 : NaN;
+    const dti = inc > 0 ? S.debt / inc * 100 : NaN;
+    const assets = nw + S.debt, lev = S.debt <= 0 ? 0 : assets > 0 ? S.debt / assets * 100 : NaN;
+    $("s-pti").textContent = pctStr(pti);
+    $("f-debt").textContent = pctStr(pti);
+    $("s-pti-sub").textContent = S.debt > 0 ? "Median debtor 15.4%; 8.6% of families top 40%" : "No debt: like 23% of families";
+    $("s-lev").textContent = Number.isFinite(lev) ? lev.toFixed(1) + "%" : "Over 100%";
+    $("s-lev-sub").textContent = "Median debtor 26.9%";
+    verdict($("v-debt"), ...(S.debt > 0 ? risk(Number.isFinite(pti) ? pti : 100, 25, 40) : ["v-ok", "Debt free"]));
+    stats("st-debt", [["Payments to income", pctStr(pti), "Median debtor 15.4%"], ["Debt to income", Number.isFinite(dti) ? dti.toFixed(0) + "%" : "n/a", "Median debtor 94.8%"],
+      ["Leverage", Number.isFinite(lev) ? lev.toFixed(1) + "%" : "Over 100%", "Median debtor 26.9%"], ["Total debt", fmt(S.debt), "Median debtor $88k"]]);
+    $("r-debt").innerHTML = S.debt <= 0 ? "You carry no debt, like about 23% of US families."
+      : pti > 40 ? "Your payments take more than 40% of income. Only <b>8.6%</b> of families are this stretched, the highest share since 2010. In 2025, 19.6% of families fell behind on a payment."
+      : "Your payments use <b>" + pctStr(pti) + "</b> of income versus a median of 15.4% among debtors. " +
+        (Number.isFinite(lev) && lev < B.levMedian ? "Your leverage is below the typical debtor's." : "Your leverage is above the typical debtor's 26.9%.");
+
+    // Credit cards and student loans
+    verdict($("v-cc"), ...(S.cc <= 0 ? ["v-ok", "No balance"] : S.cc > B.ccMean ? ["v-bad", "High"] : S.cc > B.ccMedian ? ["v-warn", "Above median"] : ["v-mid", "Near median"]));
+    $("f-cc").textContent = fmt(S.cc);
+    meter("m-cc", { min: 100, max: 50000, you: S.cc, refs: [[B.ccMedian, "Median $3.1k"], [B.ccMean, "Mean $8.0k"]] });
+    $("r-cc").innerHTML = (S.cc <= 0 ? "You pay cards in full, like <b>55.8%</b> of families."
+        : "You carry " + fmt(S.cc) + " on cards, <b>" + xs(S.cc / B.ccMedian) + "</b> the median balance among the 44.7% of families who carry one. Average card rates reached 21.4% in 2025.") +
+      " " + (S.stud <= 0 ? "No student debt puts you with 80% of families."
+        : "Your student debt of " + fmt(S.stud) + " compares with a median of $25,600 and mean of $43,000 among the 20% who owe.");
+
+    // Spending
+    const sp = S.spend;
+    let grp = null;
+    if (ri.edge === "high" || ri.p >= 90) grp = [B.spendTop10, "top 10% by income"];
+    else if (ri.p >= 80) grp = [B.spend80to90, "80th to 90th income percentile"];
+    else if (ri.p < 20) grp = [B.spendBottom20, "bottom 20% by income"];
+    verdict($("v-sp"), ...level(sp / B.spendMedian));
+    $("f-sp").textContent = xs(sp / B.spendMedian);
+    const refs = [[B.spendMedian, "Median $33.7k"], [B.spendMean, "Mean $48.7k"]];
+    if (grp) refs.push([grp[0], "Your income group avg"]);
+    meter("m-sp", { min: 5000, max: 500000, you: sp, refs });
+    $("r-sp").innerHTML = "You spend <b>" + xs(sp / B.spendMedian) + "</b> the median family's $33,700 outside housing." +
+      (grp ? " Families in the " + grp[1] + " spend " + fmt(grp[0]) + " on average." : "") + " " +
+      (S.vac <= 0 ? "Like 39% of families, you took no paid vacation." : "Your vacation budget of " + fmt(S.vac) + " compares with $3,500 for the median family that travels.");
+
+    const isSample = Object.keys(SAMPLE).every(k => S[k] === SAMPLE[k]);
+    $("sampleNote").innerHTML = isSample ? "<b>Sample household loaded.</b> Replace it with your own numbers. Nothing leaves your browser."
+                                         : "<b>Your numbers.</b> Saved in this browser only.";
+  }
+
+  $("resetBtn").addEventListener("click", () => { S = Object.assign({}, SAMPLE); syncCtls(); update(); });
+  syncCtls();
+  update();
+})();
+</script>
+</body>
+</html>

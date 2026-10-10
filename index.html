@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>WealthWise</title>
+<meta name="description" content="Move the sliders to see where your household's income, net worth, home, retirement savings, debt and spending rank against the Federal Reserve's 2025 Survey of Consumer Finances.">
+<meta property="og:title" content="WealthWise: Where do I stand?">
+<meta property="og:description" content="Rank your household against 135 million US families using the Fed's 2025 Survey of Consumer Finances.">
+<meta name="color-scheme" content="light dark">
+<script>try{var t=localStorage.getItem("scf-fit-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;900&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="wrap">
+
+  <div class="mast">
+    <h1 class="brand">WealthWise</h1>
+    <span class="caps">Where do I stand?</span>
+    <div class="links">
+      <a class="caps" href="https://github.com/lor3nzo/wealthwise" target="_blank" rel="noopener">Code</a>
+      <button class="btn" id="themeBtn" type="button">Theme: System</button>
+    </div>
+  </div>
+
+  <section class="hero" aria-label="Your income rank">
+    <div class="hero-num">
+      <span class="lead">Your income beats</span>
+      <div class="big" aria-live="polite"><span class="n tab" id="s-inc">75</span><span class="pc">%</span></div>
+      <span class="lead">of American families. <span class="muted" id="s-inc-sub"></span></span>
+    </div>
+    <div class="hero-side">
+      <div class="ctls"><div class="ctl" data-ctl="income"></div><div class="ctl" data-ctl="nw"></div></div>
+      <div class="facts">
+        <div class="fact"><span class="caps">Net worth rank</span><span class="v tab" id="s-nw"></span><span class="s" id="s-nw-sub"></span></div>
+        <div class="fact"><span class="caps">Income vs your age</span><span class="v tab" id="s-age"></span><span class="s" id="s-age-sub"></span></div>
+        <div class="fact"><span class="caps">Debt payments</span><span class="v tab" id="s-pti"></span><span class="s" id="s-pti-sub"></span></div>
+        <div class="fact"><span class="caps">Leverage</span><span class="v tab" id="s-lev"></span><span class="s" id="s-lev-sub"></span></div>
+      </div>
+      <div class="notice"><span id="sampleNote"></span><button class="link-btn" id="resetBtn" type="button">Reset to sample</button></div>
+    </div>
+  </section>
+
+  <section class="profile" aria-label="Your profile">
+    <div class="group"><span class="caps">Age</span><div class="chips" data-group="age"></div></div>
+    <div class="group"><span class="caps">Education</span><div class="chips" data-group="edu"></div></div>
+    <div class="group"><span class="caps">Housing</span><div class="chips" data-group="house"></div></div>
+    <div class="group"><span class="caps">Where you live</span><div class="chips" data-group="metro"></div></div>
+  </section>
+
+  <section class="row" aria-labelledby="h-inc">
+    <div class="row-title"><h2 id="h-inc">Income</h2><span class="verdict" id="v-inc"></span><p class="src">Before tax family income for 2024. Table 1, Table A.2 (p.7, p.48).</p></div>
+    <div class="row-ctl">
+      <div class="meter" role="img" id="m-inc"></div>
+      <div class="tbl"><table class="cmp"><thead><tr><th>Families like you</th><th class="r">Median</th><th class="r">Mean</th><th class="r">You vs median</th></tr></thead><tbody id="t-inc"></tbody></table></div>
+    </div>
+    <div class="row-out"><span class="fig tab" id="f-inc"></span><span class="fig-cap">Your age group's median</span><p class="read" id="r-inc"></p></div>
+  </section>
+
+  <section class="row" aria-labelledby="h-nw">
+    <div class="row-title"><h2 id="h-nw">Net worth</h2><span class="verdict" id="v-nw"></span><p class="src">Assets minus debts. Table 2, Table A.2 (p.12, p.48). Type a minus sign for negative values.</p></div>
+    <div class="row-ctl">
+      <div class="meter" role="img" id="m-nw"></div>
+      <div class="tbl"><table class="cmp"><thead><tr><th>Families like you</th><th class="r">Median</th><th class="r">Mean</th><th class="r">You vs median</th></tr></thead><tbody id="t-nw"></tbody></table></div>
+    </div>
+    <div class="row-out"><span class="fig tab" id="f-nw"></span><span class="fig-cap">Your age group's median</span><p class="read" id="r-nw"></p></div>
+  </section>
+
+  <section class="row" aria-labelledby="h-home">
+    <div class="row-title"><h2 id="h-home">Home</h2><span class="verdict" id="v-home"></span><p class="src">Box 4 (p.22 to 23), Tables 3 and 4. Equity is value minus all home secured debt.</p></div>
+    <div class="row-ctl">
+      <div class="ctls" id="homeCtls"><div class="ctl" data-ctl="home"></div><div class="ctl" data-ctl="mortgage"></div></div>
+      <div class="meter" role="img" id="m-home"></div>
+      <div class="stats" id="st-home"></div>
+    </div>
+    <div class="row-out"><span class="fig tab" id="f-home"></span><span class="fig-cap" id="f-home-cap">Your home equity</span><p class="read" id="r-home"></p></div>
+  </section>
+
+  <section class="row" aria-labelledby="h-ret">
+    <div class="row-title"><h2 id="h-ret">Retirement</h2><span class="verdict" id="v-ret"></span><p class="src">IRAs and DC plans such as 401(k)s. Box 2 Table A (p.18), Table 3. Excludes Social Security and pensions.</p></div>
+    <div class="row-ctl">
+      <div class="ctls"><div class="ctl" data-ctl="ret"></div></div>
+      <div class="meter" role="img" id="m-ret"></div>
+      <div class="stats" id="st-ret"></div>
+    </div>
+    <div class="row-out"><span class="fig tab" id="f-ret"></span><span class="fig-cap" id="f-ret-cap">The typical holder</span><p class="read" id="r-ret"></p></div>
+  </section>
+
+  <section class="row" aria-labelledby="h-debt">
+    <div class="row-title"><h2 id="h-debt">Debt load</h2><span class="verdict" id="v-debt"></span><p class="src">Table 5 (p.30). Medians among families with debt. Assets estimated as net worth plus debt.</p></div>
+    <div class="row-ctl">
+      <div class="ctls"><div class="ctl" data-ctl="debt"></div><div class="ctl" data-ctl="pay"></div></div>
+      <div class="stats" id="st-debt"></div>
+    </div>
+    <div class="row-out"><span class="fig tab" id="f-debt"></span><span class="fig-cap">Of income to debt payments</span><p class="read" id="r-debt"></p></div>
+  </section>
+
+  <section class="row" aria-labelledby="h-cc">
+    <div class="row-title"><h2 id="h-cc">Cards and student loans</h2><span class="verdict" id="v-cc"></span><p class="src">Table 4 (p.25). Card debt counts balances left after the last payment.</p></div>
+    <div class="row-ctl">
+      <div class="ctls"><div class="ctl" data-ctl="cc"></div><div class="ctl" data-ctl="stud"></div></div>
+      <div class="meter" role="img" id="m-cc"></div>
+    </div>
+    <div class="row-out"><span class="fig tab" id="f-cc"></span><span class="fig-cap">Card balance carried</span><p class="read" id="r-cc"></p></div>
+  </section>
+
+  <section class="row" aria-labelledby="h-sp">
+    <div class="row-title"><h2 id="h-sp">Spending</h2><span class="verdict" id="v-sp"></span><p class="src">Box 1 (p.9 to 10). Twelve months, excluding housing. New in the 2025 survey.</p></div>
+    <div class="row-ctl">
+      <div class="ctls"><div class="ctl" data-ctl="spend"></div><div class="ctl" data-ctl="vac"></div></div>
+      <div class="meter" role="img" id="m-sp"></div>
+    </div>
+    <div class="row-out"><span class="fig tab" id="f-sp"></span><span class="fig-cap">The median family's spending</span><p class="read" id="r-sp"></p></div>
+  </section>
+
+  <footer>
+    <span class="f-a">Method and source</span>
+    <div class="f-b">
+      <p>Percentiles are interpolated on a log scale between published points: the cutoffs in Table A.2, plus each group's median treated as its midpoint. Above the 95th percentile the report gives no finer cutoffs, so the page shows 95+. Cutoffs use "usual" income while you enter last year's actual income. Treat ranks as approximate, within a few points.</p>
+      <p>Source: <a href="https://www.federalreserve.gov/publications/files/scf26.pdf" target="_blank" rel="noopener"><i>Changes in U.S. Family Finances from 2022 to 2025: Evidence from the Survey of Consumer Finances</i></a>, Aladangady et al., Board of Governors of the Federal Reserve System, October 2026. All figures in 2025 dollars. Nothing you enter leaves your browser.</p>
+      <p>Built by <a href="https://www.linkedin.com/in/lor3nzo/" target="_blank" rel="noopener">Lorenzo T Geraci</a></p>
+    </div>
+  </footer>
+</div>
+<script src="js/data.js"></script>
+<script src="js/core.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
